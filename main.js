@@ -65,28 +65,63 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("id","y-axis")
             .call(yAxis)            
 
-        // threshold scale
+        // THRESHOLD SCALE
 
-        const dataVarianceFirst = d3.min(
+        // min+max temp
+
+        const dataVarianceLow = d3.min(
             json.monthlyVariance, d => d.variance)
-        const dataVarianceLast = d3.max(
+
+        const dataVarianceHigh = d3.max(
             json.monthlyVariance, d => d.variance)
+
+        const tempMin = Number((json.baseTemperature + dataVarianceLow).toFixed(3))
+        const tempMax = Number((json.baseTemperature + dataVarianceHigh).toFixed(3))
+
+
+        // threshold scale 
 
         const colorDomain = ["#e4ca7a", "#cf9930", "#d97e26", "#e1631e", "#ea4415", "#f41e0b"]
-        
 
-        const dataVarianceInterval = (Math.abs(dataVarianceFirst)*1000 + dataVarianceLast*1000)/(1000*colorDomain.length)
-
-
-        let rangeStep = dataVarianceFirst
-
-        const colorRange = colorDomain.map( i=> {
-            return rangeStep = (Number(rangeStep) + Number(dataVarianceInterval)).toFixed(3)
+        const colorRangeInterval = Number(((tempMax - tempMin)/(colorDomain.length+1)).toFixed(3))
+        let colorRangeStart = tempMin
+        const colorRange = colorDomain.map( d => {
+            return colorRangeStart = Number((Number(colorRangeStart) + Number(colorRangeInterval)).toFixed(3))
         })
+        colorRange.unshift(tempMin)
 
 
         const threshold = d3.scaleThreshold()
-            .domain([colorDomain])
-            .range([colorRange])
+            .domain(colorDomain)
+            .range(colorRange)
+
+        const x = d3.scaleLinear()
+            .domain([0, 1])
+            .range([0, 240])
+
+        const xAxisLegend = d3.axisBottom(x)
+            .tickSize(15)
+            .tickValues(threshold.domain())
+
+        const description = d3
+            .select("#description")
+            .append("svg")
+            .attr("width", "200")
+            .attr("height", "100")
+
+        description 
+            .append("g")
+            .attr("class","cancel")
+            .call(xAxisLegend);
+
+        description
+            .select(".domain")
+            .remove()
+
+        description
+            .selectAll("rect")
+            .data()
+
+        
     }
 })
