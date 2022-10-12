@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // threshold scale 
 
 
-        const colorRange = ["#e4ca7a", "#cf9930", "#d97e26", "#e1631e", "#ea4415", "#f41e0b"]
+        const colorRange = ["#64a4c7", "#b4d1e0", "#e4de86", "#e2c747", "#de7b3b", "#d73222"]
 
         const colorDomainInterval = Number(((tempMax - tempMin)/(colorRange.length)).toFixed(3))
 
@@ -40,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         console.log("col domain : "+colorDomain)
         console.log("range: "+colorRange)
-
         
         const threshold = d3.scaleThreshold()
             .domain(colorDomain)
@@ -56,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .tickFormat(d3.format(".3f"))
             
         const description = d3
-            .select("#description")
+            .select("#legend")
             .append("svg")
             .attr("width", 400)
             .attr("height", 100)
@@ -83,22 +82,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 
         // MAIN AXIS
 
-        const formatMonth = d3.timeParse("%B")
-        const timeFormat  = d3.timeFormat("%B")
-        const formatYear = d3.timeParse("%Y")
+        const formatMonth = d3.timeParse("%B %Y") // string -> date
+        const timeFormat  = d3.timeFormat("%B") // date -> string
+        const formatYear = d3.timeParse("%Y") // string -> date
 
         const dataYearFirst =  formatYear(
             d3.min(json.monthlyVariance, d => d.year))
         const dataYearLast = formatYear(
             d3.max(json.monthlyVariance, d => d.year))
-        const dataMonthFirst = formatMonth("January")
-        const dataMonthLast = formatMonth("December")
+        const dataMonthFirst = formatMonth("January 2015")
+        const dataMonthLast = formatMonth("January 2016")
         
         // X
         
         const xScale = d3
             .scaleTime()
-            .domain([dataYearFirst, dataYearLast])
+            .domain([dataYearFirst, dataYearLast]) // in date format
             .range([chartPadding, chartWidth-chartPadding])
         
         const xAxis = d3
@@ -109,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         const yScale = d3
             .scaleTime()
-            .domain([dataMonthFirst, dataMonthLast])
+            .domain([dataMonthFirst, dataMonthLast]) // in date format
             .range([chartHeight-chartPadding, chartPadding])
         
         const yAxis = d3
@@ -135,17 +134,44 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("id","y-axis")
             .call(yAxis)
 
-        // const dataMonth = yAxis.scale().ticks().map( i => i.toLocaleString("default", {month: "long"}))        
+        // ticks return date object, getMonth returns numbers, so: 
+        const dataMonth = yAxis.scale().ticks().map( i => i.toLocaleString("default", {month: "long"}))  
+        
+        console.log(dataMonth)
             
         svg.selectAll("rect")
             .data(json.monthlyVariance)
             .enter()
             .append("rect")
                 .attr("class", "cell")
-                .attr("data-month", d => d.month)
+                .attr("data-month", d => d.month-1)
                 .attr("data-year", d => d.year)
                 .attr("data-temp", d => (json.baseTemperature + d.variance).toFixed(3))
-        
+                .attr("x", d => xScale(formatYear(d.year)))
+                .attr("y", d => {
+                    let month = `${dataMonth[d.month]} 2015`
+                    if (d.month === 12) month = "January 2016"
+                    return yScale(formatMonth(month))
+                })
+                .attr("height", 40)
+                .attr("width", 4)
+                .style("fill", d => {
+                    let variance = json.baseTemperature + d.variance
+                    if (variance >= 1.684 && variance < 3.718) 
+                    {return colorRange[0]}
+                    else if (variance >= 3.718 && variance < 5.752)
+                    {return colorRange[1]}
+                    else if (variance >= 5.752 && variance < 7.786)
+                    {return colorRange[2]}
+                    else if (variance >= 7.786 && variance < 9.820)
+                    {return colorRange[3]}
+                    else if (variance >= 9.820 && variance < 11.854)
+                    {return colorRange[4]}
+                    else if (variance >= 11.854 && variance <= 13.888)
+                    {return colorRange[4]}
+                })
+
+        console.log(yAxis.scale())
 
     }
 })

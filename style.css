@@ -4,3 +4,8 @@
     background-color: antiquewhite;
     width: max-content;
 }
+
+#title {
+    border: 1px solid black;
+    width: max-content;
+}
