@@ -38,9 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         colorDomain.push(tempMax)
 
-        console.log("col domain : "+colorDomain)
-        console.log("range: "+colorRange)
-        
         const threshold = d3.scaleThreshold()
             .domain(colorDomain)
             .range(colorRange)
@@ -82,38 +79,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 
         // MAIN AXIS
 
-        const formatMonth = d3.timeParse("%B %Y") // string -> date
-        const timeFormat  = d3.timeFormat("%B") // date -> string
-        const formatYear = d3.timeParse("%Y") // string -> date
+        const monthToString  = d3.timeFormat("%B") // date -> string
 
-        const dataYearFirst =  formatYear(
-            d3.min(json.monthlyVariance, d => d.year))
-        const dataYearLast = formatYear(
-            d3.max(json.monthlyVariance, d => d.year))
-        const dataMonthFirst = formatMonth("January 2015")
-        const dataMonthLast = formatMonth("January 2016")
-        
         // X
         
         const xScale = d3
-            .scaleTime()
-            .domain([dataYearFirst, dataYearLast]) // in date format
+            .scaleBand()
+            .domain(json.monthlyVariance.map(d=>d.year)) 
             .range([chartPadding, chartWidth-chartPadding])
         
+
         const xAxis = d3
             .axisBottom(xScale)
-            .ticks(20)
+            .tickValues(xScale.domain().filter(d => d%10 === 0))
         
         // Y
         
         const yScale = d3
-            .scaleTime()
-            .domain([dataMonthFirst, dataMonthLast]) // in date format
+            .scaleBand()
+            .domain([0,1,2,3,4,5,6,7,8,9,10,11]) 
             .range([chartHeight-chartPadding, chartPadding])
         
         const yAxis = d3
             .axisLeft(yScale)
-            .tickFormat(timeFormat) 
+            .tickFormat(d => {
+                let date = new Date(2000, d)
+                return monthToString(date)
+            })
         
         
         // SVG
@@ -133,11 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .attr("transform", "translate("+chartPadding+",0)")
             .attr("id","y-axis")
             .call(yAxis)
-
-        // ticks return date object, getMonth returns numbers, so: 
-        const dataMonth = yAxis.scale().ticks().map( i => i.toLocaleString("default", {month: "long"}))  
-        
-        console.log(dataMonth)
             
         svg.selectAll("rect")
             .data(json.monthlyVariance)
@@ -145,17 +132,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .append("rect")
                 .attr("class", "cell")
                 .attr("data-month", d => d.month-1)
-                .attr("data-year", d => d.year)
-                .attr("data-temp", d => (json.baseTemperature + d.variance).toFixed(3))
-                .attr("x", d => xScale(formatYear(d.year)))
-                .attr("y", d => {
-                    let month = `${dataMonth[d.month]} 2015`
-                    if (d.month === 12) month = "January 2016"
-                    return yScale(formatMonth(month))
-                })
-                .attr("height", 40)
-                .attr("width", 4)
-                .style("fill", d => {
+                .attr("data-year",  d => d.year)
+                .attr("data-temp",  d => (json.baseTemperature + d.variance).toFixed(3))
+                .attr("x", d => xScale(d.year))
+                .attr("y", d => yScale(d.month-1) )
+                .attr("height", d => yScale.bandwidth(d.month))
+                .attr("width",  d => xScale.bandwidth(d.year))
+                .style("fill",  d => {
                     let variance = json.baseTemperature + d.variance
                     if (variance >= 1.684 && variance < 3.718) 
                     {return colorRange[0]}
@@ -170,8 +153,5 @@ document.addEventListener("DOMContentLoaded", () => {
                     else if (variance >= 11.854 && variance <= 13.888)
                     {return colorRange[4]}
                 })
-
-        console.log(yAxis.scale())
-
     }
 })
