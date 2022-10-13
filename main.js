@@ -1,7 +1,13 @@
 
-const chartWidth = 1400;
+const chartWidth = 1450;
 const chartHeight = 800;
 const chartPadding = 100;
+
+const toolTip = d3
+    .select("#tooltip-container")
+    .append("div")
+    .attr("id", "tooltip")
+    .style("display", "none");
 
 document.addEventListener("DOMContentLoaded", () => {
     const req = new XMLHttpRequest();
@@ -111,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // SVG
         
         const svg = d3
-            .select("#title")
+            .select("#map")
             .append("svg")
             .attr("width", chartWidth)
             .attr("height", chartHeight)      
@@ -119,12 +125,20 @@ document.addEventListener("DOMContentLoaded", () => {
         svg.append("g")
             .attr("transform", "translate(0,"+ (chartHeight - chartPadding) +")")
             .attr("id","x-axis")
-            .call(xAxis)    
+            .call(xAxis)
+            .append("text")
+            .text("Years")
+            .attr("class", "ax-text")
+            .attr("transform", "translate("+ chartWidth/2 + "," + chartPadding/2 +")")
         
         svg.append("g")
             .attr("transform", "translate("+chartPadding+",0)")
             .attr("id","y-axis")
             .call(yAxis)
+            .append("text")
+            .text("Months")
+            .attr("class", "ax-text")
+            .attr("transform", "translate(-70,"+ chartHeight/2 +") rotate(-90)")
             
         svg.selectAll("rect")
             .data(json.monthlyVariance)
@@ -152,6 +166,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     {return colorRange[4]}
                     else if (variance >= 11.854 && variance <= 13.888)
                     {return colorRange[4]}
+                })
+                .on("mouseover", () => {
+                    toolTip
+                        .style("display", "block")
+                })
+                .on("mousemove", (ev,d) => {
+                    toolTip
+                    .html(`
+                        <div>
+                            <dt>date: </dt>
+                            <dd>${d.month}.${d.year}</dd>
+                        </div>
+                        <div>
+                            <dt>temperature: </dt>
+                            <dd>${(json.baseTemperature + d.variance).toFixed(3)}</dd>
+                        </div>
+                        `)
+                    .attr("data-year", d.year)
+                })
+                .on("mouseleave", () => {
+                    toolTip
+                        .style("display","none")
                 })
     }
 })

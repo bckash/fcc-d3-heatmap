@@ -1,11 +1,74 @@
 
-#description {
-    margin-left: 100px;
-    background-color: antiquewhite;
+
+
+#heatmap {
+    position: relative;
+    font-family: sans-serif;
+    border: 1px solid black;
+    width: max-content;
+    text-align: center;
     width: max-content;
 }
 
 #title {
-    border: 1px solid black;
-    width: max-content;
+    font-size: 2rem;
+    margin: 1rem;
+    margin-top: 3rem;
+}
+
+#description {
+    width: 370px;
+    margin: auto;
+    font-size: 1.2rem;
+}
+
+#map {
+    position: relative;
+}
+
+#legend {
+    text-align: right;
+    margin-right: 50px;
+}
+
+#tooltip {
+    position: absolute;
+    right: 0;
+    left: 0;
+    margin: auto;
+    padding: 10px 20px;
+    width: 250px;
+    height: max-content;
+    background-color: black;
+    opacity: 0.8;
+    color: aliceblue;
+    border-radius: 20px;
+}
+
+
+dt, dd {
+    display: inline-block;
+    margin: 0;
+}
+
+
+dt {
+    width: 120px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+dd {
+    text-align: left;
+    width: 100px;
+}
+
+rect.cell:hover {
+    fill: rgb(0, 0, 0) !important;
+    cursor: pointer;
+}
+
+.ax-text {
+    fill:rgb(0, 0, 0);
+    font-size: 1rem;
 }
